@@ -7,15 +7,26 @@ class OdomToPathNode : public rclcpp::Node
 {
 public:
     OdomToPathNode() :
-        Node("odom_to_path_node")
+        Node("odom_to_pose_node")
     {
+        // Declare parameters with default values
         this->declare_parameter<int>("buffer_size", 100);
+        this->declare_parameter<std::string>("input_topic", "odom_in");
+        this->declare_parameter<std::string>("output_topic", "pose_out");
+        
+        // Get parameter values
         this->get_parameter("buffer_size", bufferSize);
+        this->get_parameter("input_topic", inputTopic);
+        this->get_parameter("output_topic", outputTopic);
 
-        odomSubscription = this->create_subscription<nav_msgs::msg::Odometry>("odom_in", 1000,
+        // Create subscription and publisher with configurable topics
+        odomSubscription = this->create_subscription<nav_msgs::msg::Odometry>(inputTopic, 1000,
                                                                               std::bind(&OdomToPathNode::subscriptionCallback, this,
                                                                                         std::placeholders::_1));
-        pathPublisher = this->create_publisher<nav_msgs::msg::Path>("path_out", 1000);
+        pathPublisher = this->create_publisher<nav_msgs::msg::Path>(outputTopic, 1000);
+        
+        RCLCPP_INFO(this->get_logger(), "OdomToPathNode started with input_topic: %s, output_topic: %s, buffer_size: %d", 
+                    inputTopic.c_str(), outputTopic.c_str(), bufferSize);
     }
 
 private:
@@ -23,16 +34,18 @@ private:
     rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr pathPublisher;
     nav_msgs::msg::Path path;
     int bufferSize;
+    std::string inputTopic;
+    std::string outputTopic;
 
-    void subscriptionCallback(const nav_msgs::msg::Odometry& odometryMsg)
+    void subscriptionCallback(const std::shared_ptr<const nav_msgs::msg::Odometry> odometryMsg)
     {
         geometry_msgs::msg::PoseStamped poseStamped;
-        poseStamped.header.frame_id = odometryMsg.header.frame_id;
-        poseStamped.header.stamp = odometryMsg.header.stamp;
-        poseStamped.pose = odometryMsg.pose.pose;
+        poseStamped.header.frame_id = odometryMsg->header.frame_id;
+        poseStamped.header.stamp = odometryMsg->header.stamp;
+        poseStamped.pose = odometryMsg->pose.pose;
         path.poses.push_back(poseStamped);
-	path.header.frame_id = odometryMsg.header.frame_id;
-	path.header.stamp = odometryMsg.header.stamp;
+	path.header.frame_id = odometryMsg->header.frame_id;
+	path.header.stamp = odometryMsg->header.stamp;
         if(path.poses.size() > bufferSize)
         {
             path.poses.erase(path.poses.begin());

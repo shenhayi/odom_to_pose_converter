@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(odom_to_path_converter)
+project(odom_to_pose_converter)
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -16,6 +16,11 @@ ament_target_dependencies(${PROJECT_NAME}_node
 
 install(TARGETS ${PROJECT_NAME}_node
         DESTINATION lib/${PROJECT_NAME}
+)
+
+# Install launch files
+install(DIRECTORY launch
+        DESTINATION share/${PROJECT_NAME}/
 )
 
 ament_package()
