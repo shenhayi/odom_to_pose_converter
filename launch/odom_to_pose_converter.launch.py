@@ -16,13 +16,13 @@ def generate_launch_description():
     output_topic_arg = DeclareLaunchArgument(
         'output_topic',
         default_value='mavros/local_position/pose',
-        description='Output path topic name'
+        description='Output pose topic name'
     )
     
     buffer_size_arg = DeclareLaunchArgument(
         'buffer_size',
         default_value='100',
-        description='Buffer size for path poses'
+        description='Buffer size for pose poses'
     )
     
     # Create the node
